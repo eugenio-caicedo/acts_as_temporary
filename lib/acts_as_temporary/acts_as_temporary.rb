@@ -33,7 +33,7 @@ module ActsAsTemporary
     def store
       temporary_object = @temporary_id.present? ? TemporaryObject.find(@temporary_id) : TemporaryObject.new
       temporary_object.permanent_class = self.class.name
-      temporary_object.definition = self.attributes
+      temporary_object.definition = self.attributes.merge!(self.custom_attributes)
       temporary_object.save
       @temporary_id = temporary_object.id
     end
@@ -54,6 +54,13 @@ module ActsAsTemporary
       end
     end
     
+    def custom_attributes
+      self.instance_variables.reject{|f| reject_attribute(f)}.inject({}){|r, field| r.merge({field.to_sym => self.send(field)})}
+    end
+    
+    def reject_attribute(field)
+      field.to_sym == :attributes || field.to_sym == :temporary_id
+    end
     
   end
 end
