@@ -33,7 +33,7 @@ module ActsAsTemporary
     def store
       temporary_object = @temporary_id.present? ? TemporaryObject.find(@temporary_id) : TemporaryObject.new
       temporary_object.permanent_class = self.class.name
-      temporary_object.definition = self.attributes.merge!(self.custom_attributes)
+      temporary_object.definition = self.attributes.merge(self.custom_attributes)
       temporary_object.save
       @temporary_id = temporary_object.id
     end
@@ -55,7 +55,20 @@ module ActsAsTemporary
     end
     
     def custom_attributes
-      self.instance_variables.reject{|f| reject_attribute(f)}.inject({}){|r, field| r.merge({field.to_sym => self.send(field)})}
+      me = self
+      c_values = {}
+      c_attrs = self.instance_variables.reject{|f| reject_attribute(f)}
+      c_attrs.each do |field|
+        begin
+          puts "Field: #{field} - #{field.to_sym}"
+          puts "Value: #{me.instance_variable_get(field.to_sym)}#"
+          c_values.merge!({field.to_sym => me.instance_variable_get(field.to_sym)})
+        rescue => ex
+          puts ex.message
+          next
+        end
+      end
+      return c_values
     end
     
     def reject_attribute(field)
