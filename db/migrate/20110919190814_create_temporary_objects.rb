@@ -1,4 +1,4 @@
-class CreateTemporaryObjects < ActiveRecord::Migration
+class CreateTemporaryObjects < ActiveRecord::Migration[6.0]
   def change
     create_table :temporary_objects do |t|
       t.string :permanent_class
